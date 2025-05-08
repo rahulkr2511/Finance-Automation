@@ -44,6 +44,22 @@ def categorize_transaction(df):
                 break
     return df
 
+# Function to add a new keyword to a category
+def add_keyword(category, keyword):
+    keyword = keyword.lower().strip()
+    if category and category in st.session_state.categories: 
+        if keyword and keyword not in st.session_state.categories[category]:
+            st.session_state.categories[category].append(keyword)
+            save_categories()
+            st.success(f"Keyword '{keyword}' added to category '{category}'")
+            return True
+        else:
+            st.warning(f"Keyword '{keyword}' already exists in category '{category}'")
+            return False
+    else:
+        st.error(f"Category '{category}' does not exist. Please create it first.")
+        return False
+
 
 
 
@@ -61,6 +77,8 @@ def load_transactions(file):
     except Exception as e:
         st.error(f"Error loading file: {str(e)}")
         return None
+    
+
 def main():
     st.title("Finance Dashboard")
     uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
@@ -72,10 +90,14 @@ def main():
             df_debit = df[df["Debit/Credit"] == "Debit"].copy()
             df_credit = df[df["Debit/Credit"] == "Credit"].copy()
 
+            # Copy the debit and credit transactions to session state
+            st.session_state.debit_transactions = df_debit
+            st.session_state.credit_transactions = df_credit
+
             # Create tabs for debit and credit transactions
             tab1, tab2 = st.tabs(["Debit Transactions", "Credit Transactions"])
             with tab1:
-                st.subheader("Debit Transactions")
+                st.subheader("Expenses details")
 
                 # Add new category input
                 new_category = st.text_input("Add a new category")
@@ -89,14 +111,60 @@ def main():
                         st.error("Please enter a category name.")
 
                 # Display the debit transactions
-                st.write(df_debit)
+                edited_df = st.data_editor(
+                    st.session_state.debit_transactions[["Date", "Details", "Amount", "Category"]], 
+                    column_config={
+                        "Date": st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
+                        "Amount": st.column_config.NumberColumn("Amount", format="%.2f AED"),
+                        "Category": st.column_config.SelectboxColumn(
+                            "Category", 
+                            options=list(st.session_state.categories.keys()), 
+                            default="Uncategorized",
+                        ),
+                    },
+                    use_container_width=True,
+                    hide_index=True,
+                    key="debit_transactions_editor",
+                )
+
+                save_button = st.button("Save Changes", type="primary")
+                if save_button:
+                    for id, row in edited_df.iterrows():
+                        new_category = row["Category"]
+                        if row["Category"] == st.session_state.debit_transactions.at[id, "Category"]:
+                            continue
+                        new_keyword = row["Details"]
+                        st.session_state.debit_transactions.at[id, "Category"] = new_category
+                        add_keyword(new_category, new_keyword)
+
+
+                    # Save the changes to the session state
+                    st.session_state.debit_transactions = edited_df
+                    st.success("Changes saved successfully!")
+                
 
                 # Create a bar chart for debit transactions
                 fig = px.bar(df_debit, x="Date", y="Amount", title="Debit Transactions Over Time")
                 st.plotly_chart(fig)
+
+                # Summary statistics
+                st.subheader("Summary Statistics")
+                category_total = st.session_state.debit_transactions.groupby("Category")["Amount"].sum().reset_index()
+                category_total = category_total.sort_values(by="Amount", ascending=False)
+                st.write(category_total)
+
+                fig = px.pie(category_total, values="Amount", names="Category", title="Expenses by Category")
+                st.plotly_chart(fig, use_container_width=True)
+
                 
             with tab2:  
-                st.subheader("Credit Transactions")
+                st.subheader("Income details")
+
+                # Display total income
+                total_income = df_credit["Amount"].sum()    
+                st.metric(label="Total Income", value=f"{total_income:,.2f} AED")
+
+                # Display the credit transactions
                 st.write(df_credit)
                 # Create a bar chart for credit transactions
                 fig = px.bar(df_credit, x="Date", y="Amount", title="Credit Transactions Over Time")
