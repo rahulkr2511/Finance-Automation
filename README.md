@@ -1,5 +1,5 @@
 # FinanceAutomation
-# It is created using streamlit
+## It is created using streamlit
     Streamlit is an open-source Python library used to quickly and easily build interactive web applications for data science and machine learning projects — all using pure Python.
     Key Uses of Streamlit:
         Create Interactive Dashboards
@@ -15,9 +15,9 @@
     
     session state property in streamlit is used to update the state dynamically
 
-# Run the application using
+## Run the application using
     streamlit run main.py
 
-# Pandas is used for data manipulation
-# OS and JSON is used for loading json file and writing to it in realtime
-# plotly.express is used to display figures and charts
+## Pandas is used for data manipulation
+## OS and JSON is used for loading json file and writing to it in realtime
+## plotly.express is used to display figures and charts
