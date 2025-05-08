@@ -12,4 +12,12 @@
             Great for fast prototyping of tools, reports, or visual experiments without setting up a full web framework like Flask or Django.
         Interactive Reports
             Ideal for turning Jupyter Notebook insights into beautiful, interactive web reports.
+    
+    session state property in streamlit is used to update the state dynamically
 
+# Run the application using
+    streamlit run main.py
+
+# Pandas is used for data manipulation
+# OS and JSON is used for loading json file and writing to it in realtime
+# plotly.express is used to display figures and charts
