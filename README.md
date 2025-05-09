@@ -22,3 +22,9 @@
 ## Pandas is used for data manipulation
 ## OS and JSON is used for loading json file and writing to it in realtime
 ## plotly.express is used to display figures and charts
+
+## Steps to analyze the sbi bank statement
+    1. download bank statement in xls format
+    2. remove all unnecessary rows from top and bottom and keep only the transactions
+    3. format the row starts describing all the headers as header and export the file as csv
+    4. upload the file in this application and analyze and make changes

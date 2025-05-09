@@ -103,6 +103,10 @@ def main():
             with tab1:
                 st.subheader("Expenses details")
 
+                # Display total expenses
+                total_expenses = df_cp["Debit"].sum()    
+                st.metric(label="Total Expenses", value=f"{total_expenses:,.2f} Rs.")
+
                 # Add new category input
                 new_category = st.text_input("Add a new category")
                 if st.button("Add Category"):
