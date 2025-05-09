@@ -16,6 +16,7 @@
     session state property in streamlit is used to update the state dynamically
 
 ## Run the application using
+    start virtual enviroment using source .venv/bin/activate
     streamlit run main.py
 
 ## Pandas is used for data manipulation

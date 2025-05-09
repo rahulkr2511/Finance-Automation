@@ -38,8 +38,8 @@ def categorize_transaction(df):
         keywords_lowercase = [keyword.lower() for keyword in keywords]
 
         for id, row in df.iterrows():
-            details = row["Details"].lower().strip()
-            if details in keywords_lowercase:
+            details = row["Description"].lower().strip()
+            if any(keyword in details for keyword in keywords_lowercase):
                 df.at[id, "Category"] = category
                 break
     return df
@@ -68,8 +68,13 @@ def load_transactions(file):
     try:
         df = pd.read_csv(file)
         df.columns = df.columns.str.strip()  # Remove leading/trailing whitespace from column names
-        df["Amount"] = df["Amount"].replace({'\$': '', ',': ''}, regex=True).astype(float)
-        df["Date"] = pd.to_datetime(df["Date"], format="%d %b %Y", errors="coerce")
+
+        # Modify the column names to match the expected format
+        df["Debit"] = pd.to_numeric(df["Debit"].replace({'\$': '', ',': '', '': '0'}, regex=True), errors="coerce").fillna(0)
+        df["Credit"] = pd.to_numeric(df["Credit"].replace({'\$': '', ',': '', '': '0'}, regex=True), errors="coerce").fillna(0)
+        df["Balance"] = pd.to_numeric(df["Balance"].replace({'\$': '', ',': '', '': '0'}, regex=True), errors="coerce").fillna(0)
+
+        df["Txn Date"] = pd.to_datetime(df["Txn Date"], format="%d %b %Y", errors="coerce")
         st.write(df)
 
         # Categorize the transactions and return the updated DataFrame
@@ -87,12 +92,11 @@ def main():
 
         # Separate the debit and credit transactions
         if df is not None:
-            df_debit = df[df["Debit/Credit"] == "Debit"].copy()
-            df_credit = df[df["Debit/Credit"] == "Credit"].copy()
+            df_cp = df.copy()
+            df_credit = df["Credit"].copy()
 
-            # Copy the debit and credit transactions to session state
-            st.session_state.debit_transactions = df_debit
-            st.session_state.credit_transactions = df_credit
+            # Copy the transactions to session state
+            st.session_state.transactions = df_cp
 
             # Create tabs for debit and credit transactions
             tab1, tab2 = st.tabs(["Debit Transactions", "Credit Transactions"])
@@ -112,10 +116,10 @@ def main():
 
                 # Display the debit transactions
                 edited_df = st.data_editor(
-                    st.session_state.debit_transactions[["Date", "Details", "Amount", "Category"]], 
+                    st.session_state.transactions[["Txn Date", "Description", "Debit", "Category"]], 
                     column_config={
-                        "Date": st.column_config.DateColumn("Date", format="DD/MM/YYYY"),
-                        "Amount": st.column_config.NumberColumn("Amount", format="%.2f AED"),
+                        "Txn Date": st.column_config.DateColumn("Txn Date", format="DD/MM/YYYY"),
+                        "Debit": st.column_config.NumberColumn("Debit", format="%.2f Rs."),
                         "Category": st.column_config.SelectboxColumn(
                             "Category", 
                             options=list(st.session_state.categories.keys()), 
@@ -131,29 +135,29 @@ def main():
                 if save_button:
                     for id, row in edited_df.iterrows():
                         new_category = row["Category"]
-                        if row["Category"] == st.session_state.debit_transactions.at[id, "Category"]:
+                        if row["Category"] == st.session_state.transactions.at[id, "Category"]:
                             continue
-                        new_keyword = row["Details"]
-                        st.session_state.debit_transactions.at[id, "Category"] = new_category
+                        new_keyword = row["Description"]
+                        st.session_state.transactions.at[id, "Category"] = new_category
                         add_keyword(new_category, new_keyword)
 
 
                     # Save the changes to the session state
-                    st.session_state.debit_transactions = edited_df
+                    st.session_state.transactions = edited_df
                     st.success("Changes saved successfully!")
                 
 
                 # Create a bar chart for debit transactions
-                fig = px.bar(df_debit, x="Date", y="Amount", title="Debit Transactions Over Time")
+                fig = px.bar(df_cp, x="Txn Date", y="Debit", title="Debit Transactions Over Time")
                 st.plotly_chart(fig)
 
                 # Summary statistics
                 st.subheader("Summary Statistics")
-                category_total = st.session_state.debit_transactions.groupby("Category")["Amount"].sum().reset_index()
-                category_total = category_total.sort_values(by="Amount", ascending=False)
+                category_total = st.session_state.transactions.groupby("Category")["Debit"].sum().reset_index()
+                category_total = category_total.sort_values(by="Debit", ascending=False)
                 st.write(category_total)
 
-                fig = px.pie(category_total, values="Amount", names="Category", title="Expenses by Category")
+                fig = px.pie(category_total, values="Debit", names="Category", title="Expenses by Category")
                 st.plotly_chart(fig, use_container_width=True)
 
                 
@@ -161,13 +165,13 @@ def main():
                 st.subheader("Income details")
 
                 # Display total income
-                total_income = df_credit["Amount"].sum()    
-                st.metric(label="Total Income", value=f"{total_income:,.2f} AED")
+                total_income = df_credit.sum()    
+                st.metric(label="Total Income", value=f"{total_income:,.2f} Rs.")
 
                 # Display the credit transactions
-                st.write(df_credit)
+                st.write(df_cp[["Txn Date", "Description", "Credit"]])
                 # Create a bar chart for credit transactions
-                fig = px.bar(df_credit, x="Date", y="Amount", title="Credit Transactions Over Time")
+                fig = px.bar(df_cp, x="Txn Date", y="Credit", title="Credit Transactions Over Time")
                 st.plotly_chart(fig)
 
 
