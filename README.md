@@ -28,3 +28,9 @@
     2. remove all unnecessary rows from top and bottom and keep only the transactions
     3. format the row starts describing all the headers as header and export the file as csv
     4. upload the file in this application and analyze and make changes
+
+## Add requirements.txt
+    pip install pipreqs
+    pipreqs . --force
+    Add missing dependencies manulaly by getting the version using,
+    pip freeze | grep dependency name (eg: pip freeze | grep pandas)
