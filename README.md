@@ -29,6 +29,12 @@
     3. format the row starts describing all the headers as header and export the file as csv
     4. upload the file in this application and analyze and make changes
 
+## Additionally a customizable catergory section is added
+    categories.json file is created with different catergories as key and list of keywords(to identify this category).
+    save_category function to add new custom category
+    add_keyword function to update the description value if new category is added
+    Group the data based on categories and display using pie chart
+
 ## Add requirements.txt
     pip install pipreqs
     pipreqs . --force

@@ -13,36 +13,24 @@ st.set_page_config(page_title="Finance Automation", page_icon=":money_with_wings
 
 
 # Create a session state to store the categories
+# It helps to persist data across reruns due to user interactions like button clicks or input changes
 if "categories" not in st.session_state:
     st.session_state.categories = {
         "Uncategorized": []
     }
 
-# Load the categories from a JSON file if it exists
+# Load the categories from a JSON file if it exists and store them in session state
 if os.path.exists("categories.json"):
     with open("categories.json", "r") as f:
         st.session_state.categories = json.load(f)
+
+
 # Function to save categories to a JSON file
 def save_categories():
     with open("categories.json", "w") as f:
+        # Save the latest categories from session state to the JSON file
         json.dump(st.session_state.categories, f)
 
-# Function to categorize transactions
-def categorize_transaction(df):
-    # Create a new column for the category
-    df["Category"] = "Uncategorized"
-    # Iterate through the categories and assign them to the transactions
-    for category, keywords in st.session_state.categories.items():
-        if category == "Uncategorized" or not keywords:
-            continue
-        keywords_lowercase = [keyword.lower() for keyword in keywords]
-
-        for id, row in df.iterrows():
-            details = row["Description"].lower().strip()
-            if any(keyword in details for keyword in keywords_lowercase):
-                df.at[id, "Category"] = category
-                break
-    return df
 
 # Function to add a new keyword to a category
 def add_keyword(category, keyword):
@@ -61,6 +49,22 @@ def add_keyword(category, keyword):
         return False
 
 
+# Function to categorize transactions
+def categorize_transaction(df):
+    # Create a new column for the category
+    df["Category"] = "Uncategorized"
+    # Iterate through the categories and assign them to the transactions
+    for category, keywords in st.session_state.categories.items():
+        if category == "Uncategorized" or not keywords:
+            continue
+        keywords_lowercase = [keyword.lower() for keyword in keywords]
+
+        for id, row in df.iterrows():
+            details = row["Description"].lower().strip()
+            if any(keyword in details for keyword in keywords_lowercase):
+                df.at[id, "Category"] = category
+                break
+    return df
 
 
 # Define the main function and create uploader to upload the CSV file
