@@ -1,3 +1,4 @@
+![Status](https://img.shields.io/badge/status-done-brightgreen)
 # SBI FinanceAutomation
 ## It is created using streamlit
     Streamlit is an open-source Python library used to quickly and easily build interactive web applications for data science and machine learning projects — all using pure Python.
