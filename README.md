@@ -1,6 +1,6 @@
 # SBI Finance Automation
 
-![Status](https://img.shields.io/badge/status-active-brightgreen)
+![Status](https://img.shields.io/badge/status-done-brightgreen)
 
 An interactive Streamlit web app for analyzing SBI bank statements — upload
 a statement, auto-categorize transactions by keyword matching, and explore
